@@ -1,2 +1,2 @@
-# anne companion
+# anne Companion
 Companion PWA for anne.
