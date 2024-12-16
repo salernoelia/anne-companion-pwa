@@ -1,6 +1,6 @@
 <template>
     <div>
-        <slot></slot>
+        <slot class="page"></slot>
         <Navbar id="nav" />
     </div>
 </template>
@@ -20,5 +20,9 @@
     display: flex;
     justify-content: center;
     gap: 1rem;
+}
+
+.page {
+    overflow-y: scroll;
 }
 </style>

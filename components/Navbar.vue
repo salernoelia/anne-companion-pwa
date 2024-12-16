@@ -4,8 +4,12 @@
             <div class="nav-item">
                 <NuxtLink to="/">
 
-                    Dashboard
+                    Install App
                 </NuxtLink>
+
+            </div>
+            <div class="nav-item">
+                <NuxtLink to="/dashboard">Dashboard</NuxtLink>
             </div>
             <div class="nav-item">
                 <NuxtLink to="/settings">Settings</NuxtLink>

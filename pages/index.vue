@@ -1,95 +1,111 @@
 <template>
     <NuxtLayout>
+        <!-- Display PWA Offline Ready Status -->
+        <div>Offline Ready: {{ $pwa?.offlineReady }}</div>
 
-        <Card class="w-[350px]">
-            <CardHeader>
-                <CardTitle>Anne</CardTitle>
-                <CardDescription>Check if you are connected to a device</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <code>{{ anneCheck }}</code>
-            </CardContent>
-            <CardFooter class="flex justify-center px-6 pb-6">
+        <!-- Install PWA Button -->
+        <div class="install-pwa">
+            <button v-if="showInstallButton" @click="installPWA">Install App</button>
+        </div>
 
-                <Button @click="checkForAnne">Check</Button>
-            </CardFooter>
-        </Card>
+
+
+        <!-- Main Application Page -->
+        <NuxtPage />
+
+        <!-- PWA Update Notification -->
+        <div v-if="$pwa.needRefresh" class="pwa-update-notification">
+            <span>New content available!</span>
+            <button @click="$pwa.updateServiceWorker()">Reload</button>
+        </div>
+
+        <!-- PWA Offline Ready Notification -->
+        <div v-if="$pwa.offlineReady" class="pwa-offline-ready">
+            <span>App is ready to work offline.</span>
+        </div>
     </NuxtLayout>
-
 </template>
-<script setup lang="ts">
 
+<script lang="ts" setup>
+import { ref, onMounted } from 'vue'
+import { useNuxtApp } from '#app'
 
+// Access the PWA functionalities
+const { $pwa } = useNuxtApp()
 
-// Interface for AnneCheck
-interface AnneCheck {
-    environment: string;
-    data: {
-        status: string;
-    };
-}
+// Reactive variable to control the install button visibility
+const showInstallButton = ref(false)
 
-// Reactive variable to store the check result
-const anneCheck = ref<AnneCheck | null>(null);
-
-/**
- * @brief Attempts to fetch the /ok endpoint from anne-wear.local and 192.168.4.1.
- */
-async function checkForAnne() {
-    console.log('Checking for Anne device...');
-
-    // Define the URLs to check
-    const urls = ['http://anne-wear.local/ok', 'http://192.168.4.1/ok', 'http://192.168.1.118/ok'];
-
-    for (const url of urls) {
-        try {
-            const response = await fetch(url, {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json',
-                },
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
-            }
-
-            const data = await response.json();
-
-            // Update the reactive variable with the successful response
-            anneCheck.value = {
-                environment: url.includes('anne-wear.local') ? 'local' : 'ap',
-                data: data,
-            };
-
-            console.log(`Connected via ${anneCheck.value.environment} environment.`);
-            return; // Exit the function after a successful fetch
-        } catch (error: any) {
-            console.error(`Error fetching from ${url}:`, error.message);
-            // Continue to the next URL
-        }
+// Log PWA states when the component is mounted
+onMounted(() => {
+    if ($pwa.needRefresh) {
+        console.log('New content available!')
+    }
+    if ($pwa.offlineReady) {
+        console.log('App is ready to work offline.')
+    }
+    if ($pwa.showInstallPrompt) {
+        showInstallButton.value = true
+        console.log('Install prompt is available.')
     }
 
-    // If both fetch attempts fail
-    anneCheck.value = {
-        environment: 'none',
-        data: {
-            status: 'Failed to connect to Anne device.',
-        },
-    };
-    console.warn('Unable to connect to Anne device on any known endpoints.');
+})
+
+// Method to handle PWA installation
+const installPWA = async () => {
+    try {
+        await $pwa.install()
+        showInstallButton.value = false
+        console.log('PWA Installed Successfully!')
+    } catch (error) {
+        console.error('PWA Installation failed:', error)
+    }
 }
-
-
 </script>
 
-<style scoped>
-code {
-    background-color: #f3f4f6;
-    padding: 0.5rem;
-    border-radius: 0.25rem;
-    display: block;
-    margin-top: 1rem;
-    min-height: 5rem;
+<style lang="scss">
+.parent {
+    padding: 2rem;
+    display: flex;
+    position: absolute;
+    inset: 0;
+    justify-content: center;
+    align-items: start;
+}
+
+.pwa-update-notification,
+.pwa-offline-ready {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    background-color: #333;
+    color: #fff;
+    padding: 1rem;
+    border-radius: 8px;
+}
+
+.pwa-update-notification button {
+    margin-left: 1rem;
+    padding: 0.5rem 1rem;
+    background-color: #4DBA87;
+    border: none;
+    border-radius: 4px;
+    color: #fff;
+    cursor: pointer;
+}
+
+.install-pwa {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+}
+
+.install-pwa button {
+    padding: 0.5rem 1rem;
+    background-color: #4DBA87;
+    border: none;
+    border-radius: 4px;
+    color: #fff;
+    cursor: pointer;
 }
 </style>
