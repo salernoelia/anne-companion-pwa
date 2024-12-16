@@ -1,2 +1,2 @@
-# anne-companion-web
- Companion webapp for anne.
+# anne companion
+Companion PWA for anne.
